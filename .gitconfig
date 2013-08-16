@@ -1,0 +1,17 @@
+[user]
+    name = "Clif Bratcher"
+    email = "cebratcher@gmail.com"
+
+[alias]
+    ci = commit
+    co = checkout
+    st = status
+    df = diff
+    br = branch
+
+[color]
+    ui = auto
+
+[core]
+    editor = vim
+    pager = less -R
