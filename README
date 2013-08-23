@@ -1,1 +1,76 @@
-My $HOME configuration files.
+## My copy-paste instructions for new hosts
+# Enter my $HOME
+pushd $HOME
+
+# Move my stuff in
+git clone https://github.com/inno/home-config inno-config
+
+# Unpack
+cd inno-config
+./dotfile --install gitconfig screenrc
+
+# Go back to regular life
+popd
+
+
+Howto
+
+See all available dotfiles and their status
+./dotfile --list
+
+Install a dotfile
+./dotfile --install .screenrc
+
+Install dotfiles
+./dotfile --install .screenrc .gitconfig
+
+Remove a dotfile (wraps unlink.. no recovery yet)
+./dotfile --remove .screenrc
+
+Compare dotfile if it exists
+./dotfile --diff .screenrc
+
+Force an installation if the dotfile exists
+./dotfile --force --install .screenrc
+
+
+dotfiles.json explanation
+
+Installs $HOME/.dotfile
+Assumes source is config/dotfile
+{
+    '.dotfile': {}
+}
+
+
+Installs $HOME/.dotfile
+source is defined as config/crazylongfilename
+{
+    '.dotfile': {
+        'src': 'crazylongfilename'
+    }
+}
+
+Installs $HOME/.dotfile based on specified name
+If name is dotfileLocal, source is config/supersecretfile
+If name is dotfileRemote, source is config/publicfile
+{
+    'dotfileLocal': {
+        'src':  'supersecretfile',
+        'dest': '.dotfile'
+    },
+    'dotfileRemote': {
+        'src':  'publicfile',
+        'dest': '.dotfile'
+    }
+}
+
+TODO!
+Installs $HOME/.dotfile, but requires .dotfiles_extra to be installed first.
+{
+    '.dotfile': {
+        'requires': ['.dotfile_extra'],
+    },
+    '.dotfile_extra': {
+    }
+}
