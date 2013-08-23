@@ -1,0 +1,7 @@
+{
+    ".gitconfig": {
+        "depends": ".gitigore_global"
+    },
+    ".gitignore_global": {},
+    ".screenrc": {}
+}
