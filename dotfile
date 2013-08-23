@@ -1,0 +1,171 @@
+#!/usr/bin/env python
+
+import os
+import sys
+import json
+import argparse
+from shutil import copyfile
+
+homePath = os.path.expanduser('~')
+configRoot = 'dotfiles'
+scriptName = sys.argv[0]
+
+class Dotfile():
+    def __init__(self, configFile):
+        self.configFile = configFile
+        f = open(self.configFile, 'r')
+        self.config = json.load(f)
+
+
+    def __parseDotfile(self, dotfile, force=False):
+        if not dotfile in self.config:
+            print "dotfile '%s' not found in %s" % (dotfile, self.configFile)
+            sys.exit()
+
+        self.dotfile = dotfile
+
+        self.__setSrc()
+        self.__setDest(force=force)
+
+
+    def __installed(self):
+        if os.path.isfile(self.dest):
+            exitCode = os.system("diff -u \"%s\" \"%s\" 2>&1 > /dev/null" % (self.src, self.dest))
+            if exitCode != 0:
+                return True
+
+        return False
+
+
+    def __findDest(self, dotfile):
+        if not self.__isDotfile(dotfile):
+            return
+
+        if 'dest' in self.config[dotfile]:
+            dest = config['dest']
+        else:
+            dest = dotfile
+
+        return homePath + '/' + dest
+
+
+    def __setDest(self, force=False):
+        self.dest = self.__findDest(self.dotfile)
+
+        # Is there something in its place?
+        if os.path.isfile(self.dest):
+            if self.__installed() and not force:
+                print ""
+                print "dotfile '%s' ALREADY EXISTS" % (self.dest)
+                print "I'm not smart enough to do this part yet.."
+                print "sorry, gotta go..."
+                sys.exit()
+
+
+    def __isDotfile(self, dotfile):
+        if dotfile in self.config:
+            return True
+        else:
+            return False
+
+
+
+    def __findSrc(self, dotfile):
+        if not self.__isDotfile(dotfile):
+            return
+
+        if 'src' in self.config[dotfile]:
+            src = config['src']
+        else:
+            src = dotfile.replace('.', '')
+
+        return configRoot + '/' + src
+
+
+    def __setSrc(self):
+        self.src = self.__findSrc(self.dotfile)
+
+        # Do we have what we need?
+        if not os.path.isfile(self.src):
+            print "dotfile '%s' DOES NOT EXIST!" % (self.src)
+            print "This MUST be fixed, bailing now.."
+            sys.exit()
+
+
+    def install(self, dotfile, force=False):
+        self.__parseDotfile(dotfile, force=force)
+
+        if os.path.isfile(self.dest) and not force:
+            print "dotfile '%s' is already installed" % (self.dotfile)
+        else:
+            copyfile(self.src, self.dest)
+            print "dotfile '%s' installed successfully" % (self.dotfile)
+
+
+    def remove(self, dotfile):
+        self.__parseDotfile(dotfile)
+
+        if os.path.isfile(self.dest):
+            os.remove(self.dest)
+            print "dotfile '%s' has been removed." %s (self.dotfile)
+            print "To re-install, simply run '%s install %s'" % (scriptName, self.dotfile)
+        else:
+            print "dotfile '%s' isn't installed!" % (self.dotfile)
+
+
+    def diff(self, dotfile):
+        src  = self.__findSrc(dotfile)
+        dest = self.__findDest(dotfile)
+
+        if not src or not dest:
+            print "dotfile '%s' not recognized!" % (dotfile)
+            return
+
+        exitCode = os.system("diff -u \"%s\" \"%s\"" % (src, dest))
+        if exitCode == 0:
+            print "dotfile '%s' no difference" % (dotfile)
+        # Double-not turns value into a boolean
+        return not not exitCode
+
+
+    def list(self):
+        for dotfile in self.config:
+            installed = ''
+            # TODO: "E" = exists, "I" = installed
+            if os.path.isfile(self.__findDest(dotfile)):
+                print "E %s" % (dotfile)
+            else:
+                print "  %s" % (dotfile)
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Shuffle around dotfiles.')
+    parser.add_argument('-c', '--config', default='dotfiles.json',
+                        help="json configuration file. Default 'dotfiles.json'")
+    parser.add_argument('-l', '--list', action='store_true')
+    parser.add_argument('-i', '--install', action='store_true')
+    parser.add_argument('-r', '--remove', action='store_true')
+    parser.add_argument('-f', '--force', action='store_true')
+    parser.add_argument('-d', '--diff', action='store_true')
+    [args, dotfiles] = parser.parse_known_args()
+
+    # Handle the cases where we don't mind not having dotfiles
+    if len(dotfiles) == 0:
+        if args.list != True and args.diff != True:
+            parser.print_help()
+            sys.exit()
+
+    dotfile = Dotfile(configFile=args.config)
+
+    if args.list == True:
+        dotfile.list()
+    elif args.diff == True:
+        for filename in dotfiles:
+            dotfile.diff(filename)
+    elif args.install == True:
+        for filename in dotfiles:
+            dotfile.install(filename, force=args.force)
+    elif args.remove == True:
+        for filename in dotfiles:
+            dotfile.remove(filename)
+    else:
+        parser.print_help()
