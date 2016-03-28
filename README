@@ -7,7 +7,7 @@ git clone https://github.com/inno/home-config inno-config
 
 # Unpack
 cd inno-config
-./dotfile --install gitconfig screenrc
+./dotfile --install .gitconfig .screenrc
 
 # Go back to regular life
 popd
